@@ -1,4 +1,5 @@
-## [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=2E48F7&width=435&lines=Hi+there+i'm+%F0%9F%91%8B)](https://git.io/typing-svg)
+## ![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=2E48F7&width=435&lines=Hi+there+%F0%9F%91%8B)
+![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=2E48F7&width=435&lines=🍦アイスクリームと申します)
 <!--
 **TsukiNi22/TsukiNi22** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
