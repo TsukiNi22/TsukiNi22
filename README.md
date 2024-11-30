@@ -15,4 +15,4 @@ Here are some ideas to get you started:
 - ⚡ Fun fact: ...
 -->
 [![Linkedin]()](https://fr.linkedin.com/in/mat-dumoulin)
-[Linkedin](https://img.shields.io/badge/Linkedin-blue?style=for-the-badge&logo=linkedin&logoColor=white&logoSize=auto&labelColor=navy&link=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fmat-dumoulin)
+![Linkedin](https://img.shields.io/badge/Linkedin-blue?style=for-the-badge&logo=linkedin&logoColor=white&logoSize=auto&labelColor=navy&link=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fmat-dumoulin)
