@@ -1,5 +1,4 @@
-## Hi there 👋
-
+## [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=2E48F7&width=435&lines=Hi+there+i'm+%F0%9F%91%8B)](https://git.io/typing-svg)
 <!--
 **TsukiNi22/TsukiNi22** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
@@ -14,5 +13,5 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
-[![Static Badge](https://img.shields.io/badge/Instagram-crimson?style=for-the-badge&logo=instagram&logoColor=white&logoSize=auto)](https://www.instagram.com/tsukini_22/)
+[![Instagram](https://img.shields.io/badge/Instagram-crimson?style=for-the-badge&logo=instagram&logoColor=white&logoSize=auto)](https://www.instagram.com/tsukini_22/)
 [![Linkedin](https://img.shields.io/badge/Linkedin-blue?style=for-the-badge&logo=linkedin&logoColor=white&logoSize=auto&labelColor=navy)](https://www.linkedin.com/in/mat-dumoulin)
