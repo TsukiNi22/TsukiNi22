@@ -1,0 +1,191 @@
+# Cards of the profile README: one [[card]] per project, rendered in assets/ by scripts/cards.py
+#
+# kind = "large" (2 per row), "small" (3 per row) or "row" (one line of the list, in order)
+# pin = true: also a small copy <id>-pin for the Pinned section
+# universe = name of the package in my-universe: version, pre-release, formats and category are read from its index.json
+
+[profile]
+name = "Tsukini"
+subtitle = "🍦 アイスクリームと申します"
+tagline = "C++20 libraries · Linux tooling · Low-level & embedded dev"
+universe = "https://tsukini22.github.io/my-universe/index.json"
+snake = "https://raw.githubusercontent.com/TsukiNi22/TsukiNi22/output"   # Contribution snake of the workflow
+snake_branch = "output"                         # Branch of the snake: the activity section shows once it exists
+
+[[card]]
+id = "libutils"
+kind = "large"
+pin = true
+title = "libutils"
+universe = "libutils"
+lang = "C++20"
+text = "C++20 library (`utils::`): exceptions, CLI, arguments, network, IPC, encryption... on Unix and Windows"
+
+[[card]]
+id = "banana-brain"
+kind = "large"
+title = "banana-brain"
+universe = "brain"
+lang = "C++20"
+text = "C++20 neural network library (brain::): layered and brain networks, training, CUDA, serialization. Banana included ._."
+
+[[card]]
+id = "xdesk"
+kind = "large"
+title = "xdesk"
+universe = "xdesk"
+lang = "C++20 · Qt6"
+text = "Remote desktop and terminal in one binary (Windows / Unix), Qt6 or TTY, TLS 1.3 post-quantum, web and Android clients."
+
+[[card]]
+id = "context-forge"
+kind = "large"
+title = "context-forge"
+universe = "context-forge"
+lang = "C++20"
+text = "Forges the output of a command (C++ compilers first) with rules, plugins and an ollama model, falls back to the raw output."
+
+[[card]]
+id = "xstyle"
+kind = "large"
+title = "xstyle"
+universe = "xstyle"
+lang = "C++20"
+text = "Checker and fixer of my coding style: C++20 / libutils first, then Python, shell, Rust, CMake. Auto fixes, compact output for AI."
+
+[[card]]
+id = "my-universe"
+kind = "large"
+pin = true
+title = "my-universe"
+lang = "Python"
+made = "ai-made"
+tags = ["dnf", "apt", "pacman"]
+text = "All my packages in signed dnf / apt / pacman repositories, with a catalog and a CLI, checked every day"
+
+[[card]]
+id = "c2dmp-hsm"
+kind = "large"
+pin = true
+title = "c2dmp-hsm"
+lang = "C++20"
+made = "hand-made"
+tags = ["O(m + min(n, m))", "CC BY-NC-SA 4.0"]
+text = "Distance between 2 words, synced into libutils, in `O(m + min(n, m))`"
+
+[[card]]
+id = "s.o.s"
+kind = "large"
+pin = true
+title = "s.o.s"
+lang = "C++20"
+made = "hand-made"
+tags = ["O(n)", "CC BY-NC-SA 4.0"]
+text = "Steganography Optimized and Securized, synced into libutils, in `O(n)`"
+
+[[card]]
+id = "cpp_project_template"
+kind = "small"
+pin = true
+title = "cpp_project_template"
+lang = "Shell"
+text = "setup.sh creating a C++20 project: CMake, libutils, GTest, CI/CD, packages, docs"
+
+[[card]]
+id = "docker-image"
+kind = "small"
+pin = true
+title = "docker-image"
+lang = "Dockerfile"
+text = "The images every CI of mine runs in: ci, unit-tests, package, git"
+
+[[card]]
+id = "ai-utils"
+kind = "small"
+title = "ai-utils"
+lang = "Skills"
+text = "AI skills built from my previous work and my style of dev"
+
+[[card]]
+id = "dump"
+kind = "small"
+title = "dump"
+lang = "Lua · Shell"
+text = "Sets up a Linux PC: pam_usb, USB lock, dotfiles, packages, git, GRUB, Wayland"
+
+[[card]]
+id = "wayland-desktop"
+kind = "small"
+title = "wayland-desktop"
+lang = "Config"
+text = "My Wayland configuration, with a live demo on GitHub Pages"
+
+[[card]]
+id = "c_project_template"
+kind = "small"
+title = "c_project_template"
+lang = "C"
+text = "Same idea as the C++ template, for C projects"
+
+[[card]]
+id = "my_language"
+kind = "row"
+title = "my_language"
+lang = "C"
+text = "My programming language c15 and its compiler kamion (kmc)"
+
+[[card]]
+id = "42sh"
+kind = "row"
+title = "42sh"
+lang = "C"
+text = "A shell mimicking tcsh"
+
+[[card]]
+id = "Corewar"
+kind = "row"
+title = "Corewar"
+lang = "C"
+text = "Mimic of the Corewar"
+
+[[card]]
+id = "my_text_editor"
+kind = "row"
+title = "my_text_editor"
+lang = "C"
+text = "My text editor BananaWriter"
+
+[[card]]
+id = "compressor"
+kind = "row"
+title = "compressor"
+lang = "C"
+text = "File compressor / uncompressor"
+
+[[card]]
+id = "my_lib_c"
+kind = "row"
+title = "my_lib_c"
+lang = "C"
+text = "My C library"
+
+[[card]]
+id = "asm_64bit_pool"
+kind = "row"
+title = "asm_64bit_pool"
+lang = "x86_64"
+text = "Pool made in x86_64 assembly"
+
+[[card]]
+id = "MAGIC"
+kind = "row"
+title = "MAGIC"
+lang = "Python"
+text = "A stream deck made with an Arduino, in Python"
+
+[[card]]
+id = "aoc"
+kind = "row"
+title = "aoc"
+lang = "Python"
+text = "Advent of Code"
