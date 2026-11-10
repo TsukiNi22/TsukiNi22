@@ -7,7 +7,7 @@ File Name:
 ##  cards.py
 
 File Description:
-##  Render the banner and the project cards of the profile README (SVG, one dark theme)
+##  Render the banner, the project cards and the activity panels of the profile README (SVG, dark theme)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 ##### Import #####
@@ -17,9 +17,11 @@ from sys import exit, stderr
 # Import that can be checked
 try:
     from pathlib import Path # Used for the paths of the config and of the assets
-    from urllib.request import urlopen # Used to read the index of my-universe
+    from os import environ # Used for the token of the workflow
+    from urllib.request import Request, urlopen # Used to read my-universe and the GitHub API
     from xml.sax.saxutils import escape # Used to escape the texts of the SVG
-    import subprocess # Used to check the output branch of the snake
+    import subprocess # Used to get the token of gh on a local run
+    import math # Used for the size of the planets
     import argparse # Used for the arguments
     import tomllib # Used to read cards.toml
     import random # Used for the stars (fixed seed: same output every run)
@@ -49,6 +51,7 @@ LANG_COLORS = {"C++20": "#f34b7d", "C": "#a8b9cc", "x86_64": "#c08b3e", "Python"
                "Lua": "#000080", "Skills": "#2e48f7", "Config": "#2e48f7"}
 SIZES = {"large": (420, 172), "small": (276, 124), "row": (860, 48)}
 ROW_GAP = 5 # space between two lines of the list on GitHub, in SVG units
+STAR_SIZES = (2.8, 3.8, 5.0, 6.6) # size of the stars of the contribution sky, by level
 
 ##### Text #####
 def text_width(text: str, size: float, bold: bool = False) -> float: # Approximate width of a text in a sans font
@@ -335,30 +338,269 @@ def row(entry: dict, index: int, theme: dict, sky_of: dict) -> str: # One line o
              f'<text x="{width - 18}" y="29" font-size="12" text-anchor="end" fill="{theme["muted"]}">{escape(lang)}</text>')
     return svg_document(width, height, body)
 
-##### README #####
-ACTIVITY_START, ACTIVITY_END = "<!-- profile:activity:start -->", "<!-- profile:activity:end -->"
+##### GitHub #####
+def github_token() -> str: # Token of the workflow, else the one of gh (local runs), else none
+    for name in ("GITHUB_TOKEN", "GH_TOKEN"):
+        if environ.get(name):
+            return environ[name]
+    try:
+        result = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, check=False, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    return result.stdout.strip() if result.returncode == 0 else ""
 
-def activity(snake: str) -> str: # Activity section, the contribution snake of the output branch
-    return f'## Activity\n\n<img src="{snake}/snake-dark.svg" width="100%" alt="Contribution snake">'
+def github(path: str, token: str, query: str | None = None) -> object: # GET of the REST API, or a GraphQL query
+    url = "https://api.github.com/graphql" if query else f"https://api.github.com/{path}"
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "tsukini22-profile-cards"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    data = json.dumps({"query": query}).encode() if query else None
+    with urlopen(Request(url, data=data, headers=headers), timeout=20) as response:
+        return json.load(response)
 
-def snake_ready(branch: str) -> bool: # True once the workflow pushed the snake on its branch
-    result = subprocess.run(["git", "ls-remote", "--exit-code", "--heads", "origin", branch], cwd=ROOT,
-                            capture_output=True, check=False)
-    return result.returncode == 0
+def read_calendar(user: str, token: str) -> dict: # Contribution calendar of the last year (GraphQL needs a token)
+    query = (f'{{user(login:"{user}"){{contributionsCollection{{contributionCalendar{{totalContributions '
+             f'weeks{{contributionDays{{date contributionCount weekday}}}}}}}}}}}}')
+    return github("", token, query)["data"]["user"]["contributionsCollection"]["contributionCalendar"]
 
-def render_readme(path: Path, profile: dict) -> bool: # Fill the activity block of the README, True when changed
-    text = path.read_text(encoding="utf-8")
-    start, end = text.find(ACTIVITY_START), text.find(ACTIVITY_END)
-    if start < 0 or end < start:
-        stderr.write(f"missing markers {ACTIVITY_START} / {ACTIVITY_END} in {path}\n")
-        return False
-    block = activity(profile["snake"]) if snake_ready(profile["snake_branch"]) else ""
-    new = f"{text[:start + len(ACTIVITY_START)]}\n{block}\n{text[end:]}" if block else \
-          f"{text[:start + len(ACTIVITY_START)]}\n{text[end:]}"
-    if new == text:
-        return False
-    path.write_text(new, encoding="utf-8")
-    return True
+##### Activity #####
+def frame(width: int, height: int, theme: dict, seed: str, count: int = 90) -> str: # Sky background of a panel
+    rng = random.Random(seed)
+    return (f'<defs><linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{theme["sky1"]}"/>'
+            f'<stop offset=".6" stop-color="{theme["sky2"]}"/><stop offset="1" stop-color="{theme["sky3"]}"/></linearGradient>'
+            f'<clipPath id="frame"><rect width="{width}" height="{height}" rx="14"/></clipPath></defs>'
+            f'<rect x=".5" y=".5" width="{width - 1}" height="{height - 1}" rx="14" fill="url(#sky)" stroke="{theme["border"]}"/>'
+            f'<g clip-path="url(#frame)">{nebula(rng, width, height, theme)}'
+            f'{stars(rng, count, width, height, theme["star"], count // 2, light=(0.15, 0.6))}</g>')
+
+def title(x: float, y: float, label: str, note: str, theme: dict) -> str: # Header of a panel
+    return (f'<text x="{x}" y="{y}" class="mono" font-size="13" font-weight="700" letter-spacing="2" '
+            f'fill="{theme["accent"]}">{escape(label)}</text>'
+            f'<text x="{x}" y="{y + 18}" font-size="12" fill="{theme["muted"]}">{escape(note)}</text>')
+
+STAR_DEFS = ('<defs><linearGradient id="spike"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/>'
+             '<stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>'
+             '<radialGradient id="halo"><stop offset="0" stop-color="#5b74ff" stop-opacity=".75"/><stop offset=".6" '
+             'stop-color="#2e48f7" stop-opacity=".18"/><stop offset="1" stop-color="#2e48f7" stop-opacity="0"/></radialGradient>'
+             '<radialGradient id="glow"><stop offset="0" stop-color="#dfe5ff" stop-opacity=".9"/><stop offset=".35" '
+             'stop-color="#7d8fff" stop-opacity=".35"/><stop offset="1" stop-color="#2e48f7" stop-opacity="0"/></radialGradient>'
+             '</defs>')
+
+def sparkle(x: float, y: float, size: float, opacity: float, diagonal: bool = False, extra: str = "") -> str:
+    """Star like on a photo: soft glow, thin spikes fading at their ends, bright core (STAR_DEFS needed)"""
+    spike = max(0.7, size / 5)
+    spikes = "".join(f'<rect x="{-size * 1.3:.1f}" y="{-spike / 2:.2f}" width="{size * 2.6:.1f}" height="{spike:.2f}" '
+                     f'fill="url(#spike)" transform="rotate({angle})"/>' for angle in (0, 90))
+    if diagonal:
+        spikes += "".join(f'<rect x="{-size:.1f}" y="{-spike / 3:.2f}" width="{size * 2:.1f}" height="{spike / 1.5:.2f}" '
+                          f'fill="url(#spike)" opacity=".7" transform="rotate({angle})"/>' for angle in (45, 135))
+    return (f'<g transform="translate({x:.1f} {y:.1f})" opacity="{opacity}"><g>{extra}'
+            f'<circle r="{size * 0.8:.1f}" fill="url(#glow)"/>{spikes}<circle r="{max(0.8, size / 4.5):.2f}" fill="#ffffff"/>'
+            f'</g></g>')
+
+def streaks(days: list[dict]) -> tuple[int, int, str]: # Current streak, longest streak and the end of the longest
+    current = longest = run = 0
+    end = ""
+    for day in days:
+        run = run + 1 if day["contributionCount"] else 0
+        if run > longest:
+            longest, end = run, day["date"]
+    for day in reversed(days[:-1] if not days[-1]["contributionCount"] else days): # today may still be empty
+        if not day["contributionCount"]:
+            break
+        current += 1
+    return current, longest, end
+
+def nice_date(date: str) -> str: # 2026-10-24 -> Oct 24
+    names = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+    return f"{names[int(date[5:7]) - 1]} {int(date[8:])}"
+
+def contribution_sky(calendar: dict, theme: dict) -> str: # Contribution calendar as a starry sky, with its numbers
+    width, height = 860, 352
+    rng = random.Random("contributions")
+    weeks = calendar["weeks"]
+    days = [day for week in weeks for day in week["contributionDays"]]
+    active = sorted(day["contributionCount"] for day in days if day["contributionCount"])
+    def level(count: int) -> int: # 0 (none) to 4 (busiest quarter)
+        if not count or not active:
+            return 0
+        return 1 + min(3, sum(count > active[len(active) * q // 4] for q in (1, 2, 3)))
+    body = frame(width, height, theme, "contributions", 0) + STAR_DEFS
+
+    # Numbers
+    current, longest, longest_end = streaks(days)
+    top_day = max(days, key=lambda d: d["contributionCount"])
+    tiles = [(f'{calendar["totalContributions"]}', "contributions", "in the last year"),
+             (f"{current} d", "current streak", "days in a row"),
+             (f"{longest} d", "longest streak", f"ended {nice_date(longest_end)}" if longest_end else ""),
+             (f'{top_day["contributionCount"]}', "brightest day", nice_date(top_day["date"])),
+             (f'{calendar["totalContributions"] / len(days):.1f}', "per day", f'{len(active)} active days')]
+    gap = 10
+    tile_width = (width - 48 - gap * (len(tiles) - 1)) / len(tiles)
+    for i, (value, label, note) in enumerate(tiles):
+        x = 24 + i * (tile_width + gap)
+        body += (f'<rect x="{x:.1f}" y="62" width="{tile_width:.1f}" height="62" rx="10" fill="#0b1124" fill-opacity=".72" '
+                 f'stroke="{theme["border"]}"/><text x="{x + 14:.1f}" y="88" font-size="20" font-weight="800" '
+                 f'fill="{theme["text"]}">{escape(value)}</text>'
+                 f'<text x="{x + 14:.1f}" y="104" font-size="10.5" font-weight="700" letter-spacing=".6" '
+                 f'fill="{theme["accent"]}">{escape(label.upper())}</text>'
+                 f'<text x="{x + 14:.1f}" y="117" font-size="10" fill="{theme["muted"]}">{escape(note)}</text>')
+
+    # Sky: one star per day on the grid of the calendar
+    left, right, top, step_y = 70, width - 24, 150, 17
+    step_x = (right - left) / max(1, len(weeks) - 1)
+    for weekday, label in ((1, "Mon"), (3, "Wed"), (5, "Fri")):
+        body += (f'<text x="24" y="{top + weekday * step_y + 4}" font-size="10" fill="{theme["muted"]}">{label}</text>')
+    points: dict[str, tuple[float, float]] = {}
+    months: dict[str, float] = {}
+    totals: list[int] = []
+    today = days[-1]["date"]
+    today_at = (0.0, 0.0, 0)
+    for w, week in enumerate(weeks):
+        totals.append(sum(day["contributionCount"] for day in week["contributionDays"]))
+        for day in week["contributionDays"]:
+            x = left + w * step_x + rng.uniform(-1.6, 1.6)
+            y = top + day["weekday"] * step_y + rng.uniform(-1.6, 1.6)
+            points[day["date"]] = (x, y)
+            months.setdefault(day["date"][:7], left + w * step_x)
+            lvl = level(day["contributionCount"])
+            if day["date"] == today:
+                today_at = (x, y, day["contributionCount"])
+            if lvl == 0:
+                body += f'<circle cx="{x:.1f}" cy="{y:.1f}" r=".8" fill="{theme["star"]}" opacity=".14"/>'
+                continue
+            size = STAR_SIZES[lvl - 1]
+            opacity = (0.6, 0.75, 0.9, 1.0)[lvl - 1]
+            low = rng.uniform(0.45, 0.7)
+            twinkle = (f'<animateTransform attributeName="transform" type="scale" values="1;{low:.2f};1" '
+                       f'dur="{rng.uniform(2, 6):.1f}s" begin="{rng.uniform(0, 5):.1f}s" repeatCount="indefinite"/>')
+            if lvl >= 2: # halo behind the star, growing and shrinking at its own pace
+                breath = rng.uniform(2.5, 5.5)
+                body += (f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{size:.1f}" fill="url(#halo)"><animate attributeName="r" '
+                         f'values="{size * 0.5:.1f};{size * 1.8:.1f};{size * 0.5:.1f}" dur="{breath:.1f}s" '
+                         f'begin="{rng.uniform(0, 4):.1f}s" repeatCount="indefinite"/></circle>')
+            body += sparkle(x, y, size, opacity, lvl == 4, twinkle)
+
+    # Constellations: the busiest days joined in date order when they are close
+    busiest = sorted(sorted(days, key=lambda d: -d["contributionCount"])[:18], key=lambda d: d["date"])
+    for a, b in zip(busiest, busiest[1:]):
+        (x1, y1), (x2, y2) = points[a["date"]], points[b["date"]]
+        if math.hypot(x2 - x1, y2 - y1) < 90:
+            body += (f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{theme["accent"]}" '
+                     f'stroke-opacity=".5" stroke-width="1"/>')
+
+    # Today: golden star with radar waves and a label
+    tx, ty, tcount = today_at
+    gold = "#ffcc4d"
+    for delay in (0, 1.2):
+        body += (f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="4" fill="none" stroke="{gold}" stroke-width="1.6" opacity="0">'
+                 f'<animate attributeName="r" values="4;20" dur="2.4s" begin="{delay}s" repeatCount="indefinite"/>'
+                 f'<animate attributeName="opacity" values=".9;0" dur="2.4s" begin="{delay}s" repeatCount="indefinite"/></circle>')
+    label = f"today · {tcount}"
+    label_width = text_width(label, 11, True) + 18
+    lx, ly = tx - label_width - 22, ty - 30
+    body += (f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="9" fill="{gold}" opacity=".3"><animate attributeName="r" values="7;11;7" '
+             f'dur="2.4s" repeatCount="indefinite"/></circle>'
+             f'<path d="M{tx - 5:.1f},{ty - 5:.1f} L{lx + label_width - 6:.1f},{ly + 10:.1f}" stroke="{gold}" stroke-opacity=".7"/>'
+             f'<rect x="{lx:.1f}" y="{ly - 1:.1f}" width="{label_width:.1f}" height="20" rx="10" fill="#2b2208" '
+             f'stroke="{gold}" stroke-opacity=".8"/><text x="{lx + label_width / 2:.1f}" y="{ly + 13:.1f}" text-anchor="middle" '
+             f'font-size="11" font-weight="700" fill="{gold}">{escape(label)}</text>'
+             f'<g transform="translate({tx:.1f} {ty:.1f})"><rect x="-9" y="-.8" width="18" height="1.6" fill="{gold}"/>'
+             f'<rect x="-.8" y="-9" width="1.6" height="18" fill="{gold}"/><circle r="3.4" fill="#fff4cc"/></g>')
+
+    # Contributions per week, under the sky
+    base, bar_height = top + 6 * step_y + 52, 34
+    peak = max(totals) or 1
+    body += (f'<defs><linearGradient id="bar" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="{theme["accent2"]}" '
+             f'stop-opacity=".35"/><stop offset="1" stop-color="#9fb0ff"/></linearGradient></defs>')
+    for w, total in enumerate(totals):
+        h = max(1.5, bar_height * total / peak) if total else 1
+        body += (f'<rect x="{left + w * step_x - step_x * 0.32:.1f}" y="{base - h:.1f}" width="{step_x * 0.64:.1f}" '
+                 f'height="{h:.1f}" rx="1.5" fill="url(#bar)" opacity="{0.35 if not total else 0.9}"/>')
+    body += f'<text x="24" y="{base - 2}" font-size="10" fill="{theme["muted"]}">per week</text>'
+
+    # Months and legend
+    names = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+    for month, x in list(months.items())[1:]:
+        body += f'<text x="{x:.0f}" y="{base + 18}" font-size="10.5" fill="{theme["muted"]}">{names[int(month[5:]) - 1]}</text>'
+    x = width - 24
+    body += f'<text x="{x}" y="34" text-anchor="end" font-size="10.5" fill="{theme["muted"]}">more</text>'
+    x -= 44
+    for lvl in (4, 3, 2, 1):
+        body += sparkle(x, 30, STAR_SIZES[lvl - 1], (0.6, 0.75, 0.9, 1.0)[lvl - 1], lvl == 4)
+        x -= 16
+    body += (f'<text x="{x - 2:.0f}" y="34" text-anchor="end" font-size="10.5" fill="{theme["muted"]}">less</text>'
+             f'<circle cx="{x - 40:.0f}" cy="30" r="6" fill="#ffcc4d" opacity=".3"/><circle cx="{x - 40:.0f}" cy="30" r="3" '
+             f'fill="#fff4cc"/>'
+             f'<text x="{x - 50:.0f}" y="34" text-anchor="end" font-size="10.5" fill="{theme["muted"]}">today</text>')
+    body += title(24, 30, "CONTRIBUTION SKY", "one star per day of the last year, brighter when busier", theme)
+    return svg_document(width, height, body)
+
+def terminal(packages: list[dict], theme: dict) -> str: # ./universe list typed in a terminal, in a loop with clear
+    width, line = 860, 21
+    height = 96 + (len(packages) + 3) * line
+    period, char = 34.0, 0.08 # one loop, time to type a letter
+    command, clear = "./universe list", "clear"
+    body = (f'<rect x=".5" y=".5" width="{width - 1}" height="{height - 1}" rx="12" fill="#0a0e18" stroke="{theme["border"]}"/>'
+            f'<path d="M.5,34 h{width - 1}" stroke="{theme["border"]}"/>'
+            f'<circle cx="22" cy="17" r="6" fill="#ff5f57"/><circle cx="42" cy="17" r="6" fill="#febc2e"/>'
+            f'<circle cx="62" cy="17" r="6" fill="#28c840"/><text x="{width / 2}" y="22" text-anchor="middle" '
+            f'class="mono" font-size="12" fill="{theme["muted"]}">tsukini@fedora: ~/my-universe</text>')
+    prompt = (f'<tspan fill="{theme["hand"]}">tsukini@fedora</tspan><tspan fill="{theme["muted"]}">:</tspan>'
+              f'<tspan fill="{theme["accent"]}">~/my-universe</tspan><tspan fill="{theme["muted"]}">$ </tspan>')
+    prompt_width = len("tsukini@fedora:~/my-universe$ ") * 7.8
+    x0 = 22 + prompt_width
+
+    # Timeline of one loop (seconds)
+    typed_at = 0.8
+    output_at = typed_at + len(command) * char + 0.35
+    clear_at = period - 3.0 # `clear` typed on the last prompt
+    cleared_at = clear_at + len(clear) * 0.12 + 0.4 # screen empty until the end of the loop
+    def k(t: float) -> str: # time -> keyTime
+        return f"{t / period:.4f}"
+    def typing(text: str, start: float, step: float, until: float, uid: str, y: float) -> str: # Text typed letter by letter
+        times = ["0"] + [k(start + n * step) for n in range(len(text) + 1)] + [k(until)]
+        widths = ["0"] + [f"{n * 7.8:.1f}" for n in range(len(text) + 1)] + ["0"]
+        return (f'<clipPath id="{uid}"><rect x="{x0:.0f}" y="{y - 15}" height="20" width="0"><animate attributeName="width" '
+                f'values="{";".join(widths)}" keyTimes="{";".join(times)}" calcMode="discrete" dur="{period}s" '
+                f'repeatCount="indefinite"/></rect></clipPath><text x="{x0:.0f}" y="{y}" class="mono" font-size="13" '
+                f'fill="{theme["text"]}" clip-path="url(#{uid})">{escape(text)}</text>')
+    def shown(start: float, end: float) -> str: # Visible from start to end of each loop
+        return (f'<animate attributeName="opacity" values="0;1;0" keyTimes="0;{k(start)};{k(end)}" calcMode="discrete" '
+                f'dur="{period}s" repeatCount="indefinite"/>')
+    def cursor(x: float, y: float) -> str: # Blinking block cursor
+        return (f'<rect x="{x:.0f}" y="{y - 13:.0f}" width="8" height="16" fill="{theme["text"]}"><animate '
+                f'attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/></rect>')
+
+    # First prompt: always there, the command is typed then erased by clear
+    y = 64
+    body += f'<text x="22" y="{y}" class="mono" font-size="13">{prompt}</text>' + typing(command, typed_at, char, cleared_at, "cmd", y)
+    body += (f'<g opacity="1"><animate attributeName="opacity" values="1;0;1" keyTimes="0;{k(typed_at)};{k(cleared_at)}" '
+             f'calcMode="discrete" dur="{period}s" repeatCount="indefinite"/>{cursor(x0, y)}</g>')
+
+    # Output line by line
+    columns = [("NAME", 22), ("CATEGORY", 200), ("VERSION", 330), ("PRE-RELEASE", 440), ("FORMATS", 580), ("RELEASED", 730)]
+    rows = [[(label, theme["muted"]) for label, _ in columns]]
+    for pkg in sorted(packages, key=lambda pkg: pkg["category"] != "hand-made"): # hand-made first, then ai-made
+        made_color = theme["hand"] if pkg["category"] == "hand-made" else theme["ai"]
+        rows.append([(pkg["name"], theme["text"]), (pkg["category"], made_color), (pkg["version"].split("-")[0], theme["accent"]),
+                     (pkg.get("pre") or "-", theme["pre"] if pkg.get("pre") else theme["muted"]),
+                     (" ".join(pkg["formats"]), theme["muted"]), ((pkg.get("release") or {}).get("date", "-"), theme["muted"])])
+    for i, cells in enumerate(rows):
+        y += line
+        bold = ' font-weight="700"' if i == 0 else ""
+        texts = "".join(f'<text x="{x}" y="{y}" class="mono" font-size="13" fill="{color}"{bold}>{escape(text)}</text>'
+                        for (text, color), (_, x) in zip(cells, columns))
+        body += f'<g opacity="0">{shown(output_at + i * 0.12, cleared_at)}{texts}</g>'
+
+    # Last prompt: cursor while reading, then `clear` is typed
+    y += line * 1.6
+    ready_at = output_at + len(rows) * 0.12 + 0.2
+    body += (f'<g opacity="0">{shown(ready_at, cleared_at)}<text x="22" y="{y:.0f}" class="mono" font-size="13">{prompt}</text>'
+             f'{typing(clear, clear_at, 0.12, cleared_at, "clear", y)}'
+             f'<g opacity="1"><animate attributeName="opacity" values="1;0" keyTimes="0;{k(clear_at)}" calcMode="discrete" '
+             f'dur="{period}s" repeatCount="indefinite"/>{cursor(x0, y)}</g></g>')
+    return svg_document(width, height, body)
 
 ##### Main #####
 def read_universe(url: str) -> dict[str, dict]: # Packages of my-universe by name
@@ -366,12 +608,35 @@ def read_universe(url: str) -> dict[str, dict]: # Packages of my-universe by nam
         index = json.load(response)
     return {source["name"]: source for source in index["sources"]}
 
+def render_space(config: dict, universe: dict, theme: dict, name: str, out: Path) -> int: # Activity panels, count written
+    user = config["profile"]["user"]
+    token = github_token()
+    cards = [entry for entry in config["card"] if entry["kind"] != "row"]
+    packages = [universe[e["universe"]] for e in cards if e.get("universe")]
+    data: dict = {}
+    def calendar() -> dict:
+        if "calendar" not in data:
+            data["calendar"] = read_calendar(user, token)
+        return data["calendar"]
+    panels = {
+        "terminal": lambda: terminal(packages, theme),
+        "sky": lambda: contribution_sky(calendar(), theme),
+    }
+    count = 0
+    for panel, render in panels.items():
+        try:
+            svg = render()
+        except (OSError, ValueError, KeyError, TypeError) as e: # keep the last image when GitHub cannot be read
+            stderr.write(f"{panel}: cannot be rendered, the previous image is kept ({e})\n")
+            continue
+        (out / f"{panel}-{name}.svg").write_text(svg, encoding="utf-8")
+        count += 1
+    return count
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Render the banner and the cards of the profile README")
     parser.add_argument("--config", type=Path, default=ROOT / "cards.toml", help="cards configuration")
     parser.add_argument("--out", type=Path, default=ROOT / "assets", help="output folder of the SVG")
-    parser.add_argument("--readme", type=Path, nargs="?", const=ROOT / "README.md",
-                        help="also fill the activity section of the README (once the snake branch exists)")
     args = parser.parse_args()
 
     config = tomllib.loads(args.config.read_text(encoding="utf-8"))
@@ -401,9 +666,8 @@ def main() -> int:
                 pinned = entry | {"kind": "small", "id": f"{entry['id']}-pin"}
                 (args.out / f"{pinned['id']}-{name}.svg").write_text(card(pinned, info, theme), encoding="utf-8")
                 count += 1
+        count += render_space(config, universe, theme, name, args.out)
     print(f"✓ {count} SVG rendered in {args.out}")
-    if args.readme is not None:
-        print(f"✓ {args.readme} {'updated' if render_readme(args.readme, config['profile']) else 'unchanged'}")
     return 0
 
 exit(main())

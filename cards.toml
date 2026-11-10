@@ -9,8 +9,7 @@ name = "Tsukini"
 subtitle = "🍦 アイスクリームと申します"
 tagline = "C++20 libraries · Linux tooling · Low-level & embedded dev"
 universe = "https://tsukini22.github.io/my-universe/index.json"
-snake = "https://raw.githubusercontent.com/TsukiNi22/TsukiNi22/output"   # Contribution snake of the workflow
-snake_branch = "output"                         # Branch of the snake: the activity section shows once it exists
+user = "TsukiNi22"                                   # GitHub user: repositories, releases and contributions
 
 [[card]]
 id = "libutils"
