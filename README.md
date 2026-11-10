@@ -16,7 +16,7 @@
 
 ### Stack
 
-![C++](https://img.shields.io/badge/C%2B%2B20-00599C?style=flat-square&logo=cplusplus&logoColor=white) ![C](https://img.shields.io/badge/C-A8B9CC?style=flat-square&logo=c&logoColor=black) ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) ![Shell](https://img.shields.io/badge/Shell-4EAA25?style=flat-square&logo=gnubash&logoColor=white) ![Lua](https://img.shields.io/badge/Lua%20%2F%20Luau-2C2D72?style=flat-square&logo=lua&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) ![Assembly](https://img.shields.io/badge/x86__64%20asm-654FF0?style=flat-square&logo=assemblyscript&logoColor=white) ![Qt](https://img.shields.io/badge/Qt6-41CD52?style=flat-square&logo=qt&logoColor=white)<br>![CMake](https://img.shields.io/badge/CMake-064F8C?style=flat-square&logo=cmake&logoColor=white) ![GoogleTest](https://img.shields.io/badge/GoogleTest-4285F4?style=flat-square&logo=google&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white) ![Fedora](https://img.shields.io/badge/Fedora-51A2DA?style=flat-square&logo=fedora&logoColor=white) ![Debian](https://img.shields.io/badge/Debian-A81D33?style=flat-square&logo=debian&logoColor=white) ![Arch](https://img.shields.io/badge/Arch-1793D1?style=flat-square&logo=archlinux&logoColor=white) ![Wayland](https://img.shields.io/badge/Wayland-FFBC00?style=flat-square&logo=wayland&logoColor=black) ![Ollama](https://img.shields.io/badge/Ollama-000000?style=flat-square&logo=ollama&logoColor=white)
+![C++](https://img.shields.io/badge/C%2B%2B20-00599C?style=flat-square&logo=cplusplus&logoColor=white) ![C](https://img.shields.io/badge/C-A8B9CC?style=flat-square&logo=c&logoColor=black) ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) ![Shell](https://img.shields.io/badge/Shell-4EAA25?style=flat-square&logo=gnubash&logoColor=white) ![Lua](https://img.shields.io/badge/Lua%20%2F%20Luau-2C2D72?style=flat-square&logo=lua&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) ![Assembly](https://img.shields.io/badge/x86__64%20asm-654FF0?style=flat-square&logo=assemblyscript&logoColor=white) ![Qt](https://img.shields.io/badge/Qt6-41CD52?style=flat-square&logo=qt&logoColor=white)<br>![CMake](https://img.shields.io/badge/CMake-064F8C?style=flat-square&logo=cmake&logoColor=white) ![GoogleTest](https://img.shields.io/badge/GoogleTest-4285F4?style=flat-square&logo=google&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white) ![Fedora](https://img.shields.io/badge/Fedora-51A2DA?style=flat-square&logo=fedora&logoColor=white) ![Debian](https://img.shields.io/badge/Debian-A81D33?style=flat-square&logo=debian&logoColor=white) ![Arch](https://img.shields.io/badge/Arch-1793D1?style=flat-square&logo=archlinux&logoColor=white) ![Wayland](https://img.shields.io/badge/Wayland-FFBC00?style=flat-square&logo=wayland&logoColor=black) ![Ollama](https://img.shields.io/badge/Ollama-000000?style=flat-square&logo=ollama&logoColor=white)<br>![Node.js](https://img.shields.io/badge/Node.js-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white) ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white) ![React](https://img.shields.io/badge/React-149ECA?style=flat-square&logo=react&logoColor=white) ![Express](https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white) ![Drizzle](https://img.shields.io/badge/Drizzle-C5F74F?style=flat-square&logo=drizzle&logoColor=black) ![pnpm](https://img.shields.io/badge/pnpm-F69220?style=flat-square&logo=pnpm&logoColor=white) ![k6](https://img.shields.io/badge/k6-7D64FF?style=flat-square&logo=k6&logoColor=white)
 
 ## Pinned
 
@@ -32,7 +32,7 @@
 ## Packages
 
 > [!TIP]
-> Every package below is in one set of signed repositories for Fedora, Debian/Ubuntu and Arch: [![my-universe](https://img.shields.io/badge/my--universe-1a3d7c?style=flat-square&logo=linux&logoColor=white)](https://tsukini22.github.io/my-universe/).
+> Every package below is in one set of signed repositories for Fedora, Debian/Ubuntu and Arch: [![my-universe](https://img.shields.io/badge/my--universe-1a3d7c?style=flat-square&logo=linux&logoColor=white)](https://tsukini22.github.io/my-universe/)
 >
 > ```bash
 > # register every package repository, then install (or: apt install / pacman -S)
@@ -50,6 +50,7 @@
 </p>
 
 <p align="center"><sub><b>hand-made</b>: written by hand, the AI only helped · <b>ai-made</b>: mostly written with an AI, on top of my skills and style in <a href="https://github.com/TsukiNi22/ai-utils">ai-utils</a> · versions updated every week from my-universe</sub></p>
+
 
 ## Algorithms
 
@@ -87,11 +88,12 @@
 
 </details>
 
-<!-- profile:activity:start -->
 ## Activity
 
-<img src="https://raw.githubusercontent.com/TsukiNi22/TsukiNi22/output/snake-dark.svg" width="100%" alt="Contribution snake">
-<!-- profile:activity:end -->
+<p align="center">
+<img src="assets/terminal-dark.svg" width="100%" alt="./universe list: the packages of my-universe">
+<img src="assets/sky-dark.svg" width="100%" alt="Contribution sky: one star per day of the last year, with the numbers">
+</p>
 
 <div align="center">
 <br>
