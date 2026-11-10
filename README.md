@@ -88,6 +88,9 @@
 </details>
 
 <!-- profile:activity:start -->
+## Activity
+
+<img src="https://raw.githubusercontent.com/TsukiNi22/TsukiNi22/output/snake-dark.svg" width="100%" alt="Contribution snake">
 <!-- profile:activity:end -->
 
 <div align="center">
