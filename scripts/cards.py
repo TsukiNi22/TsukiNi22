@@ -277,7 +277,7 @@ def card(entry: dict, info: dict | None, theme: dict) -> str: # One project card
              f'{escape(entry["title"])}</text>')
     if info:
         x = width - 16
-        versions = [(f'v{info["version"].split("-")[0]}', theme["accent"])]
+        versions = [(f'v{info["version"].split("-")[0]}', theme["accent"])] if info.get("version") else [] # a pre-release only: no stable pill
         if info.get("pre"):
             versions.insert(0, (f'{info["pre"]} pre', theme["pre"]))
         for label, color in reversed(versions):
@@ -583,7 +583,7 @@ def terminal(packages: list[dict], theme: dict) -> str: # ./universe list typed 
     rows = [[(label, theme["muted"]) for label, _ in columns]]
     for pkg in sorted(packages, key=lambda pkg: pkg["category"] != "hand-made"): # hand-made first, then ai-made
         made_color = theme["hand"] if pkg["category"] == "hand-made" else theme["ai"]
-        rows.append([(pkg["name"], theme["text"]), (pkg["category"], made_color), (pkg["version"].split("-")[0], theme["accent"]),
+        rows.append([(pkg["name"], theme["text"]), (pkg["category"], made_color), ((pkg.get("version") or "-").split("-")[0] or "-", theme["accent"] if pkg.get("version") else theme["muted"]),
                      (pkg.get("pre") or "-", theme["pre"] if pkg.get("pre") else theme["muted"]),
                      (" ".join(pkg["formats"]), theme["muted"]), ((pkg.get("release") or {}).get("date", "-"), theme["muted"])])
     for i, cells in enumerate(rows):
@@ -603,16 +603,19 @@ def terminal(packages: list[dict], theme: dict) -> str: # ./universe list typed 
     return svg_document(width, height, body)
 
 ##### Main #####
-def read_universe(url: str) -> dict[str, dict]: # Packages of my-universe by name
-    with urlopen(url, timeout=20) as response:
-        index = json.load(response)
+def read_universe(url: str) -> dict[str, dict]: # Packages of my-universe by name (its index.json, or a local packages.json)
+    if Path(url).expanduser().is_file(): # a local clone of my-universe: its packages before they are published
+        index = json.loads(Path(url).expanduser().read_text(encoding="utf-8"))
+    else:
+        with urlopen(url, timeout=20) as response:
+            index = json.load(response)
     return {source["name"]: source for source in index["sources"]}
 
 def render_space(config: dict, universe: dict, theme: dict, name: str, out: Path) -> int: # Activity panels, count written
     user = config["profile"]["user"]
     token = github_token()
     cards = [entry for entry in config["card"] if entry["kind"] != "row"]
-    packages = [universe[e["universe"]] for e in cards if e.get("universe")]
+    packages = [universe[e["universe"]] for e in cards if e.get("universe") in universe] # a new package: once in my-universe
     data: dict = {}
     def calendar() -> dict:
         if "calendar" not in data:
@@ -637,11 +640,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Render the banner and the cards of the profile README")
     parser.add_argument("--config", type=Path, default=ROOT / "cards.toml", help="cards configuration")
     parser.add_argument("--out", type=Path, default=ROOT / "assets", help="output folder of the SVG")
+    parser.add_argument("--universe", help="index of my-universe: a URL or a local packages.json (default: the one of cards.toml)")
     args = parser.parse_args()
 
     config = tomllib.loads(args.config.read_text(encoding="utf-8"))
     try:
-        universe = read_universe(config["profile"]["universe"])
+        universe = read_universe(args.universe or config["profile"]["universe"])
     except (OSError, ValueError, KeyError) as e:
         stderr.write(f"cannot read the index of my-universe: {e}\n")
         return 1
@@ -658,8 +662,10 @@ def main() -> int:
         for entry in (entry for entry in config["card"] if entry["kind"] != "row"):
             info = universe.get(entry.get("universe", ""))
             if entry.get("universe") and info is None:
-                stderr.write(f"{entry['id']}: package {entry['universe']} not in my-universe\n")
-                return 1
+                if not entry.get("made"): # a typo, or a package that never reached my-universe
+                    stderr.write(f"{entry['id']}: package {entry['universe']} not in my-universe\n")
+                    return 1
+                stderr.write(f"{entry['id']}: package {entry['universe']} not in my-universe yet, drawn without its version\n")
             (args.out / f"{entry['id']}-{name}.svg").write_text(card(entry, info, theme), encoding="utf-8")
             count += 1
             if entry.get("pin"): # small copy for the Pinned section, with its own sky
