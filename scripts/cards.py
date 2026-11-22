@@ -119,17 +119,20 @@ def orbit(rng: random.Random, width: int, height: int, theme: dict, scale: float
             f'<circle cx="{cx + r:.1f}" cy="{cy:.1f}" r="{moon:.1f}" fill="{theme["accent"]}" opacity=".75"/></g></g>')
 
 def ring_moon(cx: float, cy: float, rx: float, ry: float, tilt: float, moon: float, turn: float, front: bool, theme: dict,
-              color: str = "#c3ccff") -> str:
+              color: str = "#c3ccff", leftward: bool = False) -> str:
     # One copy of the moon of the ring: both copies run the same path (the near half first, then the far half), the
     # front one is seen during the near half (drawn over the planet), the back one during the far half (under it)
-    # (the moon starts on the left end of the ring, the path is relative to it: a still render shows it there)
-    path = f'M0,0 a{rx:.1f},{ry:.1f} 0 0 0 {2 * rx:.1f},0 a{rx:.1f},{ry:.1f} 0 0 0 {-2 * rx:.1f},0'
+    # (the moon starts on one end of the ring, the path is relative to it: a still render shows it there; leftward: it
+    # crosses the front from the right to the left)
+    side = 1 if leftward else -1 # end of the ring where the moon starts
+    sweep = 1 if leftward else 0
+    path = f'M0,0 a{rx:.1f},{ry:.1f} 0 0 {sweep} {-2 * side * rx:.1f},0 a{rx:.1f},{ry:.1f} 0 0 {sweep} {2 * side * rx:.1f},0'
     return (f'<g transform="rotate({tilt:.0f} {cx:.1f} {cy:.1f})"><g opacity="{1 if front else 0}">'
             f'<animateMotion path="{path}" dur="{turn:.1f}s" repeatCount="indefinite"/>'
             f'<animate attributeName="opacity" values="{"1;0" if front else "0;1"}" keyTimes="0;.5" calcMode="discrete" '
             f'dur="{turn:.1f}s" repeatCount="indefinite"/>'
-            f'<circle cx="{cx - rx:.1f}" cy="{cy:.1f}" r="{moon * 2.2:.1f}" fill="{theme["accent"]}" opacity=".18"/>'
-            f'<circle cx="{cx - rx:.1f}" cy="{cy:.1f}" r="{moon:.1f}" fill="{color}"/></g></g>')
+            f'<circle cx="{cx + side * rx:.1f}" cy="{cy:.1f}" r="{moon * 2.2:.1f}" fill="{theme["accent"]}" opacity=".18"/>'
+            f'<circle cx="{cx + side * rx:.1f}" cy="{cy:.1f}" r="{moon:.1f}" fill="{color}"/></g></g>')
 
 def planet(rng: random.Random, width: int, height: int, theme: dict, scale: float) -> str: # Small planet floating, a moon on its ring
     r = rng.uniform(9, 14) * scale
@@ -255,11 +258,11 @@ def banner(profile: dict, packages: int, theme: dict, name: str) -> str: # Heade
     body += (f'<circle cx="{cx}" cy="{cy}" r="120" fill="url(#glow)"/>'
              f'<ellipse cx="{cx}" cy="{cy}" rx="105" ry="22" fill="none" stroke="{theme["accent"]}" stroke-width="2" '
              f'stroke-opacity=".35" transform="rotate(-18 {cx} {cy})"/>'
-             f'{ring_moon(cx, cy, 105, 22, -18, 7, 18, False, theme, theme["accent"])}'
+             f'{ring_moon(cx, cy, 105, 22, -18, 7, 18, False, theme, theme["accent"], leftward=True)}'
              f'<circle cx="{cx}" cy="{cy}" r="58" fill="url(#planet)"/>'
              f'<path d="M{cx - 105},{cy} A105,22 0 0 0 {cx + 105},{cy}" fill="none" stroke="{theme["accent"]}" '
              f'stroke-width="2.5" stroke-opacity=".8" transform="rotate(-18 {cx} {cy})"/>'
-             f'{ring_moon(cx, cy, 105, 22, -18, 7, 18, True, theme, theme["accent"])}')
+             f'{ring_moon(cx, cy, 105, 22, -18, 7, 18, True, theme, theme["accent"], leftward=True)}')
 
     # Texts
     body += (f'<g><text x="56" y="108" font-size="58" font-weight="800" fill="{theme["text"]}" '
