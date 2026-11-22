@@ -37,7 +37,7 @@
 > ```bash
 > # register every package repository, then install (or: apt install / pacman -S)
 > curl -fsSL https://tsukini22.github.io/my-universe/install.sh | bash -s
-> sudo dnf install libutils
+> sudo dnf install libutils libbrain context-forge
 > ```
 
 <p align="center">
@@ -45,8 +45,6 @@
 <a href="https://tsukini22.github.io/my-universe/"><img src="assets/my-universe-dark.svg" width="49%" alt="my-universe"></a>
 <a href="https://github.com/TsukiNi22/banana-brain"><img src="assets/banana-brain-dark.svg" width="49%" alt="banana-brain"></a>
 <a href="https://github.com/TsukiNi22/context-forge"><img src="assets/context-forge-dark.svg" width="49%" alt="context-forge"></a>
-<a href="https://github.com/TsukiNi22/xstyle"><img src="assets/xstyle-dark.svg" width="49%" alt="xstyle"></a>
-<a href="https://github.com/TsukiNi22/xdesk"><img src="assets/xdesk-dark.svg" width="49%" alt="xdesk"></a>
 </p>
 
 <p align="center"><sub><b>hand-made</b>: written by hand, the AI only helped · <b>ai-made</b>: mostly written with an AI, on top of my skills and style in <a href="https://github.com/TsukiNi22/ai-utils">ai-utils</a> · versions updated every week from my-universe</sub></p>
@@ -87,6 +85,22 @@
 </p>
 
 </details>
+
+## Xartania Suite
+
+> [!TIP]
+> The x tools, on the same base (C++20, libutils, my style, CI and packages): xstyle checks the code, xdesk reaches a remote desktop, xmouse shares one cursor across the screens. In my-universe too:
+>
+> ```bash
+> curl -fsSL https://tsukini22.github.io/my-universe/install.sh | bash -s -- --only xstyle,xdesk,xmouse
+> sudo dnf install xstyle xdesk xmouse
+> ```
+
+<p align="center">
+<a href="https://github.com/TsukiNi22/xstyle"><img src="assets/xstyle-dark.svg" width="32%" alt="xstyle"></a>
+<a href="https://github.com/TsukiNi22/xdesk"><img src="assets/xdesk-dark.svg" width="32%" alt="xdesk"></a>
+<a href="https://github.com/TsukiNi22/xmouse"><img src="assets/xmouse-dark.svg" width="32%" alt="xmouse"></a>
+</p>
 
 ## Activity
 
