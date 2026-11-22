@@ -3,6 +3,7 @@
 # kind = "large" (2 per row), "small" (3 per row) or "row" (one line of the list, in order)
 # pin = true: also a small copy <id>-pin for the Pinned section
 # universe = name of the package in my-universe: version, pre-release, formats and category are read from its index.json
+#            (with made = "...", a new package not in my-universe yet is drawn without its version)
 
 [profile]
 name = "Tsukini"
@@ -30,11 +31,20 @@ text = "C++20 neural network library (brain::): layered and brain networks, trai
 
 [[card]]
 id = "xdesk"
-kind = "large"
+kind = "small"
 title = "xdesk"
 universe = "xdesk"
 lang = "C++20 · Qt6"
-text = "Remote desktop and terminal in one binary (Windows / Unix), Qt6 or TTY, TLS 1.3 post-quantum, web and Android clients."
+text = "Remote desktop and terminal in one binary (Windows / Unix), Qt6 or TTY, TLS 1.3 post-quantum."
+
+[[card]]
+id = "xmouse"
+kind = "small"
+title = "xmouse"
+universe = "xmouse"
+made = "ai-made"
+lang = "C++20 · Qt6"
+text = "One cursor, keyboard and clipboard across a network of screens: Linux, Windows, Android."
 
 [[card]]
 id = "context-forge"
@@ -46,11 +56,11 @@ text = "Forges the output of a command (C++ compilers first) with rules, plugins
 
 [[card]]
 id = "xstyle"
-kind = "large"
+kind = "small"
 title = "xstyle"
 universe = "xstyle"
 lang = "C++20"
-text = "Checker and fixer of my coding style: C++20 / libutils first, then Python, shell, Rust, CMake. Auto fixes, compact output for AI."
+text = "Checker and fixer of my coding style: C++20 / libutils, Python, shell, Rust, CMake, auto fixes."
 
 [[card]]
 id = "my-universe"
